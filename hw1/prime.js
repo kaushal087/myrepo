@@ -9,7 +9,7 @@ out = "2";
 
 var count =0;
 var flag = 0;
-for(i=3;i<101;i++)
+for(i=3;;i++)
 {
 	for(j=2;j<=i/2;j++)
 	{
@@ -23,13 +23,18 @@ for(i=3;i<101;i++)
 	}
 
 	if(flag == 0)
-		out = out + " " + i;
+	{
+		out = out + "," + i;
 		//fs.writeFileSync(outfile, i);
 		//console.log(i);
+		count++;
+	}
 	else 
 		flag = 0;
+	if(count >= 99)
+		break;
 }
 
-out = out + "\n";
+// out = out + "\n";
 fs.writeFileSync(outfile, out);
 
