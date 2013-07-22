@@ -21,8 +21,6 @@ References:
 - https://developer.mozilla.org/en-US/docs/JSON#JSON_in_Firefox_2
 */
 
-var util = require('util');
-var rest = require('restler');
 var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
@@ -57,40 +55,22 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     return out;
 };
 
-var html2OutJson = function(htmlfile, checksfile) {
-    var checkJson = checkHtmlFile(program.file, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
-};
-
-var writeAndCheckHtmlFile = function(htmlfile, checksfile, url) {
-    var writeAndCheck = function(result, response) {
-        if (result instanceof Error) {
-            console.error('Error: %s (%s)', util.format(result.message), url);
-        } else {
-            fs.writeFileSync(htmlfile, result);
-html2OutJson(htmlfile, checksfile);
-        }
-    };
-    return writeAndCheck;
-};
-
-var url2OutJson = function(htmlfile, checksfile, url) {
-    var writeAndCheck = writeAndCheckHtmlFile(htmlfile, checksfile, url);
-    rest.get(url).on('complete', writeAndCheck);
+var clone = function(fn) {
+    // Workaround for commander.js issue.
+    // http://stackoverflow.com/a/6772648
+    return fn.bind({});
 };
 
 if(require.main == module) {
     program
-        .option('-c, --checks <file>', 'Path to checks.json', assertFileExists, CHECKSFILE_DEFAULT)
-        .option('-f, --file <file>', 'Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
-        .option('-u, --url <url>', 'URL')
+        .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
+        .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
         .parse(process.argv);
-    if(program.url) {
-        url2OutJson(program.file, program.checks, program.url);
-    } else {
-html2OutJson(program.file, program.checks);
-    }
+    var checkJson = checkHtmlFile(program.file, program.checks);
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
+
+
